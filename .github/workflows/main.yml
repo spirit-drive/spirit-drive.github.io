@@ -30,22 +30,29 @@ jobs:
       # Запускаем тесты и линтер
       - name: Run tests and linter
         run: npm run lint && npm test
-#
-#      # Собираем приложение
-#      - name: Build Application
-#        run: npm run build
 
       # Собираем приложение
       - name: Build Application
+        run: npm run build
+
+      # Публикуем приложение на Github Pages
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@4.2.1
+        with:
+          branch: gh-pages
+          folder: dist
+
+      # Собираем Storybook
+      - name: Build Storybook
         run: npm run build-storybook
 
       # Публикуем Storybook на Github Pages
       - name: Deploy Storybook to Github Pages
-        uses: JamesIves/github-pages-deploy-action@4.0.0
+        uses: JamesIves/github-pages-deploy-action@4.2.1
         with:
           branch: gh-pages
-          folder: .
-          commit-message: "Automatically publish"
+          folder: storybook-static
+          commit-message: "Automatically publish Storybook"
 
       # Останавливаем выполнение строго при неудачных тестах
       - name: Fail on failed tests
