@@ -35,13 +35,6 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      # Публикуем приложение на Github Pages
-      - name: Deploy to Github Pages
-        uses: JamesIves/github-pages-deploy-action@4.2.1
-        with:
-          branch: gh-pages
-          folder: dist
-
       # Собираем Storybook
       - name: Build Storybook
         run: npm run build-storybook
@@ -52,7 +45,6 @@ jobs:
         with:
           branch: gh-pages
           folder: .
-          commit-message: "Automatically publish Storybook"
 
       # Останавливаем выполнение строго при неудачных тестах
       - name: Fail on failed tests
