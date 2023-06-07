@@ -30,10 +30,10 @@ jobs:
       # Запускаем тесты и линтер
       - name: Run tests and linter
         run: npm run lint && npm test
-
-      # Собираем приложение
-      - name: Build Application
-        run: npm run build
+#
+#      # Собираем приложение
+#      - name: Build Application
+#        run: npm run build
 
       # Собираем приложение
       - name: Build Application
