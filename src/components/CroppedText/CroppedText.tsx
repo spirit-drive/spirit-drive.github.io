@@ -1,5 +1,6 @@
 import React, { FC, useLayoutEffect, useRef, useState } from 'react';
 import cn from 'clsx';
+import { useEvent } from '../../hooks/useEvent';
 import s from './CroppedText.module.sass';
 
 export type CroppedTextProps = {
@@ -14,54 +15,57 @@ const INITIAL_VALUE = 'I';
 export const CroppedText: FC<CroppedTextProps> = ({ className, children, opened, rows = 3 }) => {
   const [text, setText] = useState<string>(INITIAL_VALUE);
 
+  const min = useRef<number>(0);
+  const max = useRef<number>(0);
+  const mid = useRef<number>(0);
   const root = useRef<HTMLDivElement>();
   const texts = useRef<string[]>([]);
-  const prevIndex = useRef<number>(0);
-  const min = useRef<number>(0);
-  const height = useRef<number>();
-  const max = useRef<number>(0);
-  const lineHeight = useRef<number>();
-  const rowsCopy = useRef(rows);
-  rowsCopy.current = rows;
-
   const items = useRef<string[]>();
-  useLayoutEffect(() => {
-    lineHeight.current = lineHeight.current ?? root.current.getBoundingClientRect()?.height;
-    items.current = children?.split(' ') || [];
-    max.current = items.current.length - 1;
-  }, [children]);
+  const height = useRef<number>();
+  const lineHeight = useRef<number>();
 
-  const reset = useRef(() => {
-    height.current = Math.round(lineHeight.current * rowsCopy.current);
+  const reset = useEvent(() => {
+    height.current = Math.round(lineHeight.current * rows);
     texts.current = [];
-    prevIndex.current = 0;
-    min.current = 0;
+    min.current = mid.current = 0;
     max.current = items.current.length - 1;
   });
 
   useLayoutEffect(() => {
-    setText(INITIAL_VALUE);
-    reset.current();
-  }, [rows]);
+    lineHeight.current = lineHeight.current ?? root.current.getBoundingClientRect()?.height;
+    items.current = children?.split(' ') || [];
+    reset();
+  }, [reset, children]);
 
   useLayoutEffect(() => {
     let timeout: number;
+    let prevWidth: number = root.current?.getBoundingClientRect()?.width;
     const fn = () => {
       cancelAnimationFrame(timeout);
       timeout = window.requestAnimationFrame(() => {
         setText(INITIAL_VALUE);
-        reset.current();
+        reset();
       });
     };
-    const observer = new ResizeObserver(fn);
+
+    fn();
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (prevWidth !== entry.contentRect.width) {
+          prevWidth = entry.contentRect.width;
+          fn();
+        }
+      }
+    });
 
     observer.observe(root.current);
 
     return () => observer.disconnect();
-  }, []);
+  }, [reset, rows]);
 
   useLayoutEffect(() => {
-    const checkout = (callback: () => void) => {
+    const checkoutTexts = (callback: () => void) => {
       if (texts.current.length < 3) {
         texts.current.push(text);
         callback();
@@ -70,27 +74,27 @@ export const CroppedText: FC<CroppedTextProps> = ({ className, children, opened,
       texts.current.splice(0, 1);
       texts.current.push(text);
       if (texts.current[0] === texts.current[2]) {
-        reset.current();
+        reset();
         return;
       }
       callback();
     };
     const getNewText = (count: number): string => {
       if (count >= items.current.length - 1) return items.current.join(' ');
-      return [items.current.slice(0, count).join(' '), count ? '...' : ''].join('');
+      if (count <= 0) return '';
+      return [items.current.slice(0, count).join(' '), '...'].join('');
     };
 
-    checkout(() => {
+    checkoutTexts(() => {
       if (root.current.getBoundingClientRect().height <= height.current) {
-        min.current = prevIndex.current;
+        min.current = mid.current;
       } else {
-        max.current = prevIndex.current - 1;
+        max.current = mid.current - 1;
       }
-      const index = Math.round((min.current + max.current) / 2);
-      prevIndex.current = index;
-      setText(getNewText(index));
+      mid.current = Math.round((min.current + max.current) / 2);
+      setText(getNewText(mid.current));
     });
-  }, [text, children]);
+  }, [reset, text, children]);
 
   return (
     <div ref={root} className={cn(s.root, className)}>
