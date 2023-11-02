@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useLayoutEffect, useRef, useState } from 'react';
 import cn from 'clsx';
 import s from './CroppedText.module.sass';
 
@@ -43,6 +43,22 @@ export const CroppedText: FC<CroppedTextProps> = ({ className, children, opened,
     setText(INITIAL_VALUE);
     reset.current();
   }, [rows]);
+
+  useLayoutEffect(() => {
+    let timeout: number;
+    const fn = () => {
+      cancelAnimationFrame(timeout);
+      timeout = window.requestAnimationFrame(() => {
+        setText(INITIAL_VALUE);
+        reset.current();
+      });
+    };
+    const observer = new ResizeObserver(fn);
+
+    observer.observe(root.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   useLayoutEffect(() => {
     const checkout = (callback: () => void) => {
