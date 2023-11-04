@@ -13,6 +13,7 @@ const Test = () => {
   );
   return (
     <InfinityList
+      itemHeight={20}
       style={{ height: '320px' }}
       onEnd={() => {
         setItems((v) => {
