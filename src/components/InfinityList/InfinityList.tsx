@@ -1,7 +1,11 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { MutableRefObject, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import cn from 'clsx';
 import { useEvent } from '../../hooks/useEvent';
 import s from './InfinityList.module.sass';
+
+export type InfinityListRef = {
+  scrollTo: (index: number) => void;
+};
 
 export type InfinityListProps<T, P extends { data: T } = { data: T }> = React.HTMLAttributes<HTMLDivElement> & {
   className?: string;
@@ -9,8 +13,11 @@ export type InfinityListProps<T, P extends { data: T } = { data: T }> = React.HT
   itemElement: React.ComponentType<P>;
   itemHeight: number;
   itemProps?: P;
-  onEnd: () => void;
-  onStart: () => void;
+  innerRef?: MutableRefObject<InfinityListRef>;
+  endLoading?: React.ReactNode;
+  startLoading?: React.ReactNode;
+  onEnd: () => Promise<void>;
+  onStart: () => Promise<void>;
   reserve?: number;
 };
 
@@ -34,11 +41,14 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   itemHeight,
   onEnd,
   onStart,
+  innerRef,
+  startLoading,
+  endLoading,
   ...props
 }: InfinityListProps<T, P>) => {
   const root = useRef<HTMLDivElement>();
   const holder = useRef<HTMLDivElement>();
-  const vars = useRef<{ prevScrollTop: number; timeoutId: number }>({ prevScrollTop: null, timeoutId: null });
+  const prevScrollTop = useRef<number>(null);
   const [visibleItems, setVisibleItems] = useState<InfinityListVisibleItemType<T>[]>(() => {
     return items.map((value, index) => ({ value, index }));
   });
@@ -65,18 +75,16 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     const holderRect = holder.current.getBoundingClientRect();
     const bottomDiff = holderRect.bottom - rootRect.bottom;
     const topDiff = rootRect.top - holderRect.top;
-    if (vars.current.prevScrollTop !== null) {
-      if (vars.current.prevScrollTop < root.current.scrollTop && bottomDiff <= reserve) {
+    if (prevScrollTop.current !== null) {
+      if (prevScrollTop.current < root.current.scrollTop && bottomDiff <= reserve) {
         onEnd();
-      } else if (vars.current.prevScrollTop > root.current.scrollTop && topDiff <= reserve) {
-        onStart();
-        clearTimeout(vars.current.timeoutId);
-        vars.current.timeoutId = window.setTimeout(() => {
+      } else if (prevScrollTop.current > root.current.scrollTop && topDiff <= reserve) {
+        onStart().then(() => {
           root.current.scrollBy({ top: holder.current.getBoundingClientRect().height - holderRect.height });
         });
       }
     }
-    vars.current.prevScrollTop = root.current.scrollTop;
+    prevScrollTop.current = root.current.scrollTop;
   };
 
   const commonCalc = useEvent(() => {
@@ -85,6 +93,9 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   });
 
   useLayoutEffect(commonCalc, [items, itemHeight, commonCalc]);
+
+  const startLoadingCount = startLoading ? 1 : 0;
+  const endLoadingCount = endLoading ? 1 : 0;
 
   // При изменении размеров элемента - пересчитаем все
   useLayoutEffect(() => {
@@ -103,17 +114,41 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     return () => observer.disconnect();
   }, [commonCalc]);
 
+  useImperativeHandle(innerRef, () => ({
+    scrollTo: (index: number) => root.current.scrollTo({ top: (index + startLoadingCount) * itemHeight }),
+  }));
+
+  const height = itemHeight * (items.length + endLoadingCount + startLoadingCount);
+
+  const startElem = startLoading && (
+    <div className={cn(s.item, 'InfinityList__item')} style={{ height: itemHeight, top: 0 }} key="start">
+      {startLoading}
+    </div>
+  );
+
+  const endElem = endLoading && (
+    <div
+      className={cn(s.item, 'InfinityList__item')}
+      style={{ height: itemHeight, top: itemHeight * (endLoadingCount + items.length) }}
+      key="end"
+    >
+      {endLoading}
+    </div>
+  );
+
   return (
     <div {...props} ref={root} className={cn(s.root, 'InfinityList', className)} onScroll={commonCalc}>
-      <div ref={holder} style={{ height: itemHeight * items.length }} className={cn(s.holder, 'InfinityList__holder')}>
+      <div ref={holder} style={{ height }} className={cn(s.holder, 'InfinityList__holder')}>
+        {startElem}
         {visibleItems.map((item) => {
-          const style = { height: itemHeight, top: itemHeight * item.index };
+          const style = { height: itemHeight, top: itemHeight * (item.index + startLoadingCount) };
           return (
             <div className={cn(s.item, 'InfinityList__item')} style={style} key={item.index}>
               <ItemElement {...itemProps} data={item.value} />
             </div>
           );
         })}
+        {endElem}
       </div>
     </div>
   );
