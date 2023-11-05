@@ -109,7 +109,7 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
         {visibleItems.map((item) => {
           const style = { height: itemHeight, top: itemHeight * item.index };
           return (
-            <div className={cn(s.holder, 'InfinityList__item')} style={style} key={item.index}>
+            <div className={cn(s.item, 'InfinityList__item')} style={style} key={item.index}>
               <ItemElement {...itemProps} data={item.value} />
             </div>
           );
