@@ -13,6 +13,8 @@ const Test = () => {
   );
   return (
     <InfinityList
+      items={items}
+      itemElement={({ data }) => <div>{data}</div>}
       itemHeight={20}
       style={{ height: '320px' }}
       onEnd={() => {
@@ -39,11 +41,7 @@ const Test = () => {
           ];
         });
       }}
-    >
-      {items.map((item) => (
-        <div key={item}>{item}</div>
-      ))}
-    </InfinityList>
+    />
   );
 };
 

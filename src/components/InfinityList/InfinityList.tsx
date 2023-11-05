@@ -1,13 +1,15 @@
-import React, { FC, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import cn from 'clsx';
 import { useEvent } from '../../hooks/useEvent';
 import s from './InfinityList.module.sass';
 
-export type InfinityListProps = {
+export type InfinityListProps<T, P extends { data: T } = { data: T }> = {
   className?: string;
   style?: React.CSSProperties;
-  children: React.ReactNode[];
+  items: T[];
+  itemElement: React.ComponentType<P>;
   itemHeight: number;
+  itemProps?: P;
   onEnd: () => void;
   onStart: () => void;
   reserve?: number;
@@ -15,36 +17,35 @@ export type InfinityListProps = {
 
 const RESERVE = 100;
 
-export type InfinityListItemType = {
+export type InfinityListItemType<T> = {
   index: number;
-  value: React.ReactNode;
+  value: T;
 };
 
-export const InfinityList: FC<InfinityListProps> = ({
+export const InfinityList = <T, P extends { data: T } = { data: T }>({
   className,
-  children,
+  items,
+  itemElement: ItemElement,
   style,
+  itemProps = {} as P,
   reserve = RESERVE,
   itemHeight,
   onEnd,
   onStart,
-}) => {
+}: InfinityListProps<T, P>) => {
   const root = useRef<HTMLDivElement>();
   const holder = useRef<HTMLDivElement>();
-  const timeoutId = useRef<number>();
   const prevPosition = useRef<number>(null);
-  const [items, setItems] = useState<InfinityListItemType[]>(() => {
-    if (!Array.isArray(children)) return [];
-    return children.map((value, index) => ({ value, index }));
+  const [points, setPoints] = useState<InfinityListItemType<T>[]>(() => {
+    return items.map((value, index) => ({ value, index }));
   });
 
   const calcItems = useEvent(() => {
-    if (!Array.isArray(children)) return;
-    const newItems: InfinityListItemType[] = [];
+    const newItems: InfinityListItemType<T>[] = [];
     const rootRect = root.current.getBoundingClientRect();
     const TOP = root.current.scrollTop - reserve;
     const BOTTOM = TOP + rootRect.height + reserve;
-    children.forEach((value, i) => {
+    items.forEach((value, i) => {
       const top = i * itemHeight;
       const bottom = (i + 1) * itemHeight;
       if (top < TOP && bottom < TOP) return;
@@ -52,13 +53,25 @@ export const InfinityList: FC<InfinityListProps> = ({
 
       newItems.push({ value, index: i });
     });
-    setItems(newItems);
+    setPoints(newItems);
   });
 
-  useLayoutEffect(calcItems, [children, itemHeight, calcItems]);
+  useLayoutEffect(calcItems, [items, itemHeight, calcItems]);
 
-  if (!Array.isArray(children)) throw new Error(`infinity list work with only array as children`);
+  useLayoutEffect(() => {
+    let timeoutId: number;
+    const fn = () => {
+      cancelAnimationFrame(timeoutId);
+      timeoutId = requestAnimationFrame(calcItems);
+    };
+    const observer = new ResizeObserver(fn);
 
+    observer.observe(root.current);
+
+    return () => observer.disconnect();
+  }, [calcItems]);
+
+  const timeoutId = useRef<number>();
   const onScroll = () => {
     calcItems();
     const rootRect = root.current.getBoundingClientRect();
@@ -81,10 +94,10 @@ export const InfinityList: FC<InfinityListProps> = ({
 
   return (
     <div ref={root} style={style} className={cn(s.root, className)} onScroll={onScroll}>
-      <div ref={holder} style={{ height: itemHeight * children.length }} className={s.holder}>
-        {items.map((item) => (
+      <div ref={holder} style={{ height: itemHeight * items.length }} className={s.holder}>
+        {points.map((item) => (
           <div className={s.item} style={{ height: itemHeight, top: itemHeight * item.index }} key={item.index}>
-            {item.value}
+            <ItemElement {...itemProps} data={item.value} />
           </div>
         ))}
       </div>
