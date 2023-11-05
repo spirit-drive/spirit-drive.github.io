@@ -3,9 +3,8 @@ import cn from 'clsx';
 import { useEvent } from '../../hooks/useEvent';
 import s from './InfinityList.module.sass';
 
-export type InfinityListProps<T, P extends { data: T } = { data: T }> = {
+export type InfinityListProps<T, P extends { data: T } = { data: T }> = React.HTMLAttributes<HTMLDivElement> & {
   className?: string;
-  style?: React.CSSProperties;
   items: T[];
   itemElement: React.ComponentType<P>;
   itemHeight: number;
@@ -30,12 +29,12 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   className,
   items,
   itemElement: ItemElement,
-  style,
   itemProps = {} as P,
   reserve = RESERVE,
   itemHeight,
   onEnd,
   onStart,
+  ...props
 }: InfinityListProps<T, P>) => {
   const root = useRef<HTMLDivElement>();
   const holder = useRef<HTMLDivElement>();
@@ -105,13 +104,16 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   }, [commonCalc]);
 
   return (
-    <div ref={root} style={style} className={cn(s.root, className)} onScroll={commonCalc}>
-      <div ref={holder} style={{ height: itemHeight * items.length }} className={s.holder}>
-        {visibleItems.map((item) => (
-          <div className={s.item} style={{ height: itemHeight, top: itemHeight * item.index }} key={item.index}>
-            <ItemElement {...itemProps} data={item.value} />
-          </div>
-        ))}
+    <div {...props} ref={root} className={cn(s.root, 'InfinityList', className)} onScroll={commonCalc}>
+      <div ref={holder} style={{ height: itemHeight * items.length }} className={cn(s.holder, 'InfinityList__holder')}>
+        {visibleItems.map((item) => {
+          const style = { height: itemHeight, top: itemHeight * item.index };
+          return (
+            <div className={cn(s.holder, 'InfinityList__item')} style={style} key={item.index}>
+              <ItemElement {...itemProps} data={item.value} />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
