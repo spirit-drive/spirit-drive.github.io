@@ -4,9 +4,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { InfinityList, InfinityListRef } from './InfinityList';
 
 const count = 100;
+const TIMEOUT = 200;
 
-let startTimeoutId: number = null;
-let endTimeoutId: number = null;
 const Test = () => {
   const [items, setItems] = useState(() =>
     Array(count)
@@ -31,8 +30,7 @@ const Test = () => {
       style={{ height: '320px' }}
       onEnd={() => {
         return new Promise((resolve) => {
-          clearTimeout(endTimeoutId);
-          endTimeoutId = window.setTimeout(() => {
+          setTimeout(() => {
             setItems((v) => {
               const max = v[v.length - 1];
               return [
@@ -43,13 +41,12 @@ const Test = () => {
               ];
             });
             setTimeout(resolve);
-          }, 1000);
+          }, TIMEOUT);
         });
       }}
       onStart={() => {
         return new Promise((resolve) => {
-          clearTimeout(startTimeoutId);
-          startTimeoutId = window.setTimeout(() => {
+          setTimeout(() => {
             setItems((v) => {
               const min = v[0];
               return [
@@ -61,7 +58,7 @@ const Test = () => {
               ];
             });
             setTimeout(resolve);
-          }, 1000);
+          }, TIMEOUT);
         });
       }}
     />
