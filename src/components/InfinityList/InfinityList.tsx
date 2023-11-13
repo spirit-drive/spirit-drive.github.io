@@ -70,7 +70,7 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     setVisibleItems((v) => (isEqualItems(v, newVisibleItems) ? v : newVisibleItems));
   };
 
-  const timeouts = useRef<{ end: number; start: number }>({ end: null, start: null });
+  const applied = useRef<{ end: boolean; start: boolean }>({ end: false, start: false });
 
   const handleInfinityScroll = () => {
     const rootRect = root.current.getBoundingClientRect();
@@ -79,16 +79,17 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     const topDiff = rootRect.top - holderRect.top;
     if (prevScrollTop.current !== null) {
       if (prevScrollTop.current < root.current.scrollTop && bottomDiff <= reserve) {
-        clearTimeout(timeouts.current.end);
-        timeouts.current.end = window.setTimeout(() => {
-          onEnd();
+        if (applied.current.end) return;
+        applied.current.end = true;
+        onEnd().then(() => {
+          applied.current.end = false;
         });
       } else if (prevScrollTop.current > root.current.scrollTop && topDiff <= reserve) {
-        clearTimeout(timeouts.current.start);
-        timeouts.current.start = window.setTimeout(() => {
-          onStart().then(() => {
-            root.current.scrollBy({ top: holder.current.getBoundingClientRect().height - holderRect.height });
-          });
+        if (applied.current.end) return;
+        applied.current.end = true;
+        onStart().then(() => {
+          applied.current.end = false;
+          root.current.scrollBy({ top: holder.current.getBoundingClientRect().height - holderRect.height });
         });
       }
     }

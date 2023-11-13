@@ -6,7 +6,10 @@ import { InfinityList, InfinityListRef } from './InfinityList';
 const count = 100;
 const TIMEOUT = 200;
 
-const Test = () => {
+type TestProps = {
+  timeout?: number;
+};
+const Test = ({ timeout = TIMEOUT }: TestProps) => {
   const [items, setItems] = useState(() =>
     Array(count)
       .fill('')
@@ -41,7 +44,7 @@ const Test = () => {
               ];
             });
             setTimeout(resolve);
-          }, TIMEOUT);
+          }, timeout);
         });
       }}
       onStart={() => {
@@ -58,16 +61,19 @@ const Test = () => {
               ];
             });
             setTimeout(resolve);
-          }, TIMEOUT);
+          }, timeout);
         });
       }}
     />
   );
 };
 
-const meta: Meta<typeof InfinityList> = {
+const meta: Meta<typeof Test> = {
   title: 'InfinityList',
   component: Test,
+  args: {
+    timeout: 200,
+  },
 };
 
 export default meta;
