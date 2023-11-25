@@ -15,8 +15,10 @@ export type TooltipPosition = {
   y: number;
 };
 
+const initial = { x: -100000, y: -100000 };
+
 export const Tooltip: FC<TooltipProps> = ({ className, children, title, timeout = 1000 }) => {
-  const [position, setPosition] = useState<TooltipPosition>(null);
+  const [position, setPosition] = useState<TooltipPosition>(initial);
   const unmounted = useRef(false);
   useEffect(() => {
     return () => {
@@ -35,18 +37,25 @@ export const Tooltip: FC<TooltipProps> = ({ className, children, title, timeout 
       onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
         _resetTimeout();
         target.current = e.currentTarget;
-        const rect = target.current.getBoundingClientRect();
-        setPosition((v) => v || { x: e.clientX, y: rect?.top || e.clientY });
+        const rect = target.current?.getBoundingClientRect();
+        const tooltipRect = tooltip.current?.getBoundingClientRect();
+        if (!rect || !tooltipRect) return;
+        const x = rect?.x - rect?.width / 2 + tooltipRect?.width / 2;
+        const y = rect?.top || e.clientY;
+        setPosition((v) => {
+          if (v.x === x && v.y === y) return v;
+          return { x, y };
+        });
       },
       onMouseLeave: () =>
         (timeoutId.current = window.setTimeout(() => {
-          if (!unmounted.current) setPosition(null);
+          if (!unmounted.current) setPosition(initial);
         }, timeout)),
     };
   }, [timeout]);
 
   useLayoutEffect(() => {
-    if (target.current && position) {
+    if (target.current && position !== initial) {
       const tooltipRect = tooltip.current.getBoundingClientRect();
       const targetRect = target.current.getBoundingClientRect();
 

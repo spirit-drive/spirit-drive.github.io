@@ -1,11 +1,20 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { CroppedText, CroppedTextProps } from './CroppedText';
+import { ComponentInfo } from '../ComponentInfo';
 
-import { CroppedText } from './CroppedText';
+const Wrapper = (props: CroppedTextProps) => (
+  <ComponentInfo
+    title="Обрезанный текст"
+    desc={`Компонент использует useLayoutEffect, ResizeObserver и алгоритм бинарного поиска.`}
+  >
+    <CroppedText {...props} />
+  </ComponentInfo>
+);
 
 const meta: Meta<typeof CroppedText> = {
   title: 'CroppedText',
-  component: CroppedText,
+  component: Wrapper,
   argTypes: {
     rows: { control: { type: 'number', min: 0 } },
   },
