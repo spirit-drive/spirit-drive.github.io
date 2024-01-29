@@ -4,5 +4,10 @@
   padding: 8px
   border-radius: 8px
   background-color: rgba(0, 0, 0, 0.5)
+  transition: opacity .2s ease-in
+  opacity: 0
 
   transform: translate(-50%, calc(-100% - 8px))
+
+  &.visible
+    opacity: 1
