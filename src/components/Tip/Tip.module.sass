@@ -1,3 +1,5 @@
+$indent: 8px
+
 .root
   position: absolute
   z-index: 3
@@ -7,7 +9,11 @@
   transition: opacity .2s ease-in
   opacity: 0
 
-  transform: translate(-50%, calc(-100% - 8px))
-
   &.visible
     opacity: 1
+
+  &.top
+    transform: translate(-50%, calc(-100% - $indent))
+
+  &.bottom
+    transform: translate(-50%, $indent)
