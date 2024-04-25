@@ -79,18 +79,20 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     const topDiff = rootRect.top - holderRect.top;
     if (prevScrollTop.current !== null) {
       if (prevScrollTop.current < root.current.scrollTop && bottomDiff <= reserve) {
-        if (applied.current.end) return;
-        applied.current.end = true;
-        onEnd().then(() => {
-          applied.current.end = false;
-        });
+        if (!applied.current.end) {
+          applied.current.end = true;
+          onEnd().then(() => {
+            applied.current.end = false;
+          });
+        }
       } else if (prevScrollTop.current > root.current.scrollTop && topDiff <= reserve) {
-        if (applied.current.end) return;
-        applied.current.end = true;
-        onStart().then(() => {
-          applied.current.end = false;
-          root.current.scrollBy({ top: holder.current.getBoundingClientRect().height - holderRect.height });
-        });
+        if (!applied.current.start) {
+          applied.current.start = true;
+          onStart().then(() => {
+            applied.current.start = false;
+            root.current.scrollBy({ top: holder.current.getBoundingClientRect().height - holderRect.height });
+          });
+        }
       }
     }
     prevScrollTop.current = root.current.scrollTop;
@@ -138,7 +140,7 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   const endElem = endLoading && (
     <div
       className={cn(s.item, 'InfinityList__item')}
-      style={{ height: itemHeight, top: itemHeight * (endLoadingCount + items.length) }}
+      style={{ height: itemHeight, top: itemHeight * (startLoadingCount + items.length) }}
       key="end"
     >
       {endLoading}

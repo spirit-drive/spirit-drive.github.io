@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 export type Callback = (...args: unknown[]) => unknown;
 
@@ -11,6 +11,5 @@ export const useEvent = <T extends Callback = Callback>(callback: T): T => {
   const copy = useRef<T>();
   copy.current = callback;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useCallback<T>(((...args) => copy.current(...args)) as T, []);
+  return useMemo<T>(() => ((...args) => copy.current(...args)) as T, []);
 };
