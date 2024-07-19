@@ -12,7 +12,7 @@ export type SliderRangeInputProps = {
 
 export const SliderRangeInput = ({ className, value, onChange, min, max }: SliderRangeInputProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const _value = Number(e.target.value.replace(/\D/g, ''));
+    const _value = Number(e.target.value.replace(/[^\d-]/g, ''));
 
     onChange(_value);
   };

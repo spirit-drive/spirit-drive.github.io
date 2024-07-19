@@ -16,8 +16,6 @@ export const SliderRange: FC<SliderRangeProps> = ({ className, value, onChange, 
   const range = max - min;
 
   const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
     const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
     onChange(getValueByCursor({ max, min, rootWidth: rect.width, cursorClientX: e.clientX, rootClientX: rect.x }));
   };

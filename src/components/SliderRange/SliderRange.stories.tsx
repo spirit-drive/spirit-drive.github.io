@@ -5,7 +5,7 @@ import { ComponentInfo } from '../ComponentInfo';
 import React, { useState } from 'react';
 
 const Wrapper = (props: SliderRangeProps) => {
-  const [value, onChange] = useState<any>();
+  const [value, onChange] = useState<any>(0);
   return (
     <ComponentInfo
       fullWidth

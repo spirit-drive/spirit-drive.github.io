@@ -10,13 +10,14 @@ type Coords = {
 
 export type EffectorProps = {
   className?: string;
+  container?: HTMLElement;
 };
 
 export type EffectorRef = {
   show?: (elem: React.ReactNode, coords: Coords) => void;
 };
 
-export const Effector = forwardRef<EffectorRef, EffectorProps>(({ className }, ref) => {
+export const Effector = forwardRef<EffectorRef, EffectorProps>(({ className, container = document.body }, ref) => {
   const [elements, setElements] = useState<Array<{ id: string; elem: React.ReactNode; coords: Coords }>>([]);
 
   useImperativeHandle(ref, () => ({
@@ -30,19 +31,17 @@ export const Effector = forwardRef<EffectorRef, EffectorProps>(({ className }, r
   };
 
   return createPortal(
-    <>
-      {elements.map((item) => (
-        <div
-          key={item.id}
-          className={cn(s.elem, className)}
-          onAnimationEnd={onAnimationEnd(item.id)}
-          style={{ top: item.coords.y, left: item.coords.x }}
-        >
-          <div className={s.shifter}>{item.elem}</div>
-        </div>
-      ))}
-    </>,
-    document.body
+    elements.map((item) => (
+      <div
+        key={item.id}
+        className={cn(s.elem, className)}
+        onAnimationEnd={onAnimationEnd(item.id)}
+        style={{ top: item.coords.y, left: item.coords.x }}
+      >
+        <div className={s.shifter}>{item.elem}</div>
+      </div>
+    )),
+    container
   ) as React.ReactNode;
 });
 
