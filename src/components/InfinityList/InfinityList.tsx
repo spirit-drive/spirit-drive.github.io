@@ -12,7 +12,7 @@ export type InfinityListProps<T, P extends { data: T } = { data: T }> = React.HT
   items: T[];
   itemElement: React.ComponentType<P>;
   itemHeight: number;
-  itemProps?: P;
+  itemProps?: Record<string, unknown>;
   innerRef?: MutableRefObject<InfinityListRef>;
   endLoading?: React.ReactNode;
   startLoading?: React.ReactNode;
@@ -57,12 +57,12 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
     const newVisibleItems: InfinityListVisibleItemType<T>[] = [];
     const rootRect = root.current.getBoundingClientRect();
     const topSide = root.current.scrollTop - reserve;
-    const bottomSide = topSide + rootRect.height + reserve;
+    const bottomSide = root.current.scrollTop + rootRect.height + reserve;
     items.forEach((value, i) => {
       const itemTop = i * itemHeight;
       const itemBottom = (i + 1) * itemHeight;
-      if (itemTop < topSide && itemBottom < topSide) return;
-      if (itemTop > bottomSide && itemBottom > bottomSide) return;
+      if (itemBottom < topSide) return;
+      if (itemTop > bottomSide) return;
 
       newVisibleItems.push({ value, index: i });
     });
@@ -126,7 +126,7 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
   }, [commonCalc]);
 
   useImperativeHandle(innerRef, () => ({
-    scrollTo: (index: number) => root.current.scrollTo({ top: (index + startLoadingCount) * itemHeight }),
+    scrollTo: (index: number) => root.current.scrollTo({ top: (index - 1 + startLoadingCount) * itemHeight }),
   }));
 
   const height = itemHeight * (items.length + endLoadingCount + startLoadingCount);
@@ -155,7 +155,7 @@ export const InfinityList = <T, P extends { data: T } = { data: T }>({
           const style = { height: itemHeight, top: itemHeight * (item.index + startLoadingCount) };
           return (
             <div className={cn(s.item, 'InfinityList__item')} style={style} key={item.index}>
-              <ItemElement {...itemProps} data={item.value} />
+              <ItemElement {...(itemProps as P)} data={item.value} />
             </div>
           );
         })}

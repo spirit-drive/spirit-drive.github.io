@@ -26,10 +26,11 @@ const Test = ({ timeout = TIMEOUT }: TestProps) => {
   return (
     <InfinityList
       innerRef={listElem}
-      endLoading="Loading..."
-      startLoading="Loading..."
+      endLoading="End Loading..."
+      startLoading="Start Loading..."
       items={items}
-      itemElement={({ data }) => <div>{data}</div>}
+      itemProps={{ text: '' }}
+      itemElement={({ data, text }) => <div>{data}</div>}
       itemHeight={20}
       style={{ height: '320px', width: '320px' }}
       onEnd={() => {
