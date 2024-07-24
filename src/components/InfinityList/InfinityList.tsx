@@ -12,7 +12,7 @@ export type InfinityListProps<T, P extends { data: T } = { data: T }> = React.HT
   items: T[];
   itemElement: React.ComponentType<P>;
   itemHeight: number;
-  itemProps?: Record<string, unknown>;
+  itemProps?: Omit<P, 'data'>;
   innerRef?: MutableRefObject<InfinityListRef>;
   endLoading?: React.ReactNode;
   startLoading?: React.ReactNode;

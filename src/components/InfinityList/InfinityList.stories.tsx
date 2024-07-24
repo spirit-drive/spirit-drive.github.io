@@ -29,8 +29,7 @@ const Test = ({ timeout = TIMEOUT }: TestProps) => {
       endLoading="End Loading..."
       startLoading="Start Loading..."
       items={items}
-      itemProps={{ text: '' }}
-      itemElement={({ data, text }) => <div>{data}</div>}
+      itemElement={({ data }) => <div>{data}</div>}
       itemHeight={20}
       style={{ height: '320px', width: '320px' }}
       onEnd={() => {
