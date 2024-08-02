@@ -1,0 +1,28 @@
+.tooltip_popup
+  box-sizing: border-box
+  position: relative
+  width: max-content
+  border-radius: 8px
+  background-color: black
+  color: white
+  transition: opacity .2s linear
+  padding: 8px
+
+  [data-popper-placement^='top'] > .tooltip-arrow
+    bottom: -2.5
+
+  [data-popper-placement^='bottom'] > .tooltip-arrow
+    top: -2.5
+
+  [data-popper-placement^='left'] > .tooltip-arrow
+    right: -2.5
+
+  [data-popper-placement^='right'] > .tooltip-arrow
+    left: -2.5
+
+.tooltip_container
+  display: inline-block
+  position: relative
+  box-sizing: border-box
+  cursor: pointer
+
